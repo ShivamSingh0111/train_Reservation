@@ -4,35 +4,60 @@ const Booking = require('../models/Booking');
 const Seat = require('../models/Seat');
 const router = express.Router();
 
-// Book a seat
+// Book multiple seats
 router.post('/', auth, async (req, res) => {
-    const { seatNumber } = req.body;
+    const { seatNumbers } = req.body;
+
+    if (!seatNumbers || !Array.isArray(seatNumbers) || seatNumbers.length === 0) {
+        return res.status(400).json({ msg: 'Please provide an array of seat numbers' });
+    }
 
     try {
-        // Find the seat
-        const seat = await Seat.findOne({ seatNumber });
+        const bookingResults = [];
+        const errorSeats = [];
 
-        if (!seat) {
-            return res.status(404).json({ msg: 'Seat not found' });
+        // Process each seat in a transaction
+        for (const seatNumber of seatNumbers) {
+            // Find the seat
+            const seat = await Seat.findOne({ seatNumber });
+
+            if (!seat) {
+                errorSeats.push({ seatNumber, reason: 'not found' });
+                continue;
+            }
+
+            if (seat.isBooked) {
+                errorSeats.push({ seatNumber, reason: 'already booked' });
+                continue;
+            }
+
+            // Book the seat
+            seat.isBooked = true;
+            await seat.save();
+
+            // Save booking
+            const booking = new Booking({
+                user: req.user.id,
+                seat: seat._id
+            });
+
+            await booking.save();
+            bookingResults.push({ seatNumber, booking });
         }
 
-        if (seat.isBooked) {
-            return res.status(400).json({ msg: `Seat ${seatNumber} is already booked` });
+        if (bookingResults.length === 0) {
+            return res.status(400).json({ 
+                msg: 'Failed to book any seats', 
+                errors: errorSeats 
+            });
         }
 
-        // Book the seat
-        seat.isBooked = true;
-        await seat.save();
-
-        // Save booking
-        const booking = new Booking({
-            user: req.user.id,
-            seat: seat._id
+        // Return results
+        res.json({ 
+            msg: `Successfully booked ${bookingResults.length} seat(s)`, 
+            bookings: bookingResults,
+            failed: errorSeats.length > 0 ? errorSeats : undefined
         });
-
-        await booking.save();
-
-        res.json({ msg: `Seat ${seatNumber} booked successfully`, booking });
     } catch (err) {
         res.status(500).json({ msg: 'Server error', error: err.message });
     }

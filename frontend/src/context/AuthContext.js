@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ FIXED: register function should NOT store token or update user state
   const register = async (name, email, password, navigate) => {
     try {
-      const response = await axios.post('https://train-reservation-7aft.onrender.com/api/auth/register', {
+      const response = await axios.post('http://localhost:5000/api/auth/register', {
         name,
         email,
         password,
@@ -54,7 +54,7 @@ export const AuthProvider = ({ children }) => {
   // ✅ Login function remains unchanged
   const login = async (email, password) => {
     try {
-      const response = await axios.post('https://train-reservation-7aft.onrender.com/api/auth/login', {
+      const response = await axios.post('http://localhost:5000/api/auth/login', {
         email,
         password,
       });

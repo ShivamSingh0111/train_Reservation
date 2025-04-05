@@ -13,6 +13,41 @@ router.get('/', async (req, res) => {
     }
 });
 
+// Get seat availability statistics
+router.get('/stats', async (req, res) => {
+    try {
+        const totalSeats = await Seat.countDocuments();
+        const bookedSeats = await Seat.countDocuments({ isBooked: true });
+        const availableSeats = totalSeats - bookedSeats;
+        
+        // Get window seat stats
+        const totalWindowSeats = await Seat.countDocuments({ isWindow: true });
+        const availableWindowSeats = await Seat.countDocuments({ isWindow: true, isBooked: false });
+        
+        // Get position stats
+        const availableUpperSeats = await Seat.countDocuments({ position: 'upper', isBooked: false });
+        const availableMiddleSeats = await Seat.countDocuments({ position: 'middle', isBooked: false });
+        const availableLowerSeats = await Seat.countDocuments({ position: 'lower', isBooked: false });
+        
+        res.json({
+            total: totalSeats,
+            booked: bookedSeats,
+            available: availableSeats,
+            window: {
+                total: totalWindowSeats,
+                available: availableWindowSeats
+            },
+            positions: {
+                upper: availableUpperSeats,
+                middle: availableMiddleSeats,
+                lower: availableLowerSeats
+            }
+        });
+    } catch (err) {
+        res.status(500).json({ msg: 'Server error', error: err.message });
+    }
+});
+
 // Initialize seats
 router.post('/init', async (req, res) => {
     try {
@@ -23,8 +58,23 @@ router.post('/init', async (req, res) => {
         }
 
         const seats = [];
+        
+        // Initialize 40 seats with appropriate metadata
         for (let i = 1; i <= 40; i++) {
-            seats.push({ seatNumber: `S${i}` });
+            // Determine position (lower, middle, upper)
+            // We'll create a pattern where every 3 seats form a unit
+            // Each unit has 1 lower, 1 middle, 1 upper
+            const position = i % 3 === 1 ? 'lower' : i % 3 === 2 ? 'middle' : 'upper';
+            
+            // Create a more distinct pattern for window seats
+            // Making window seats more predictable - every 3rd seat is a window seat
+            const isWindow = i % 3 === 0;
+            
+            seats.push({ 
+                seatNumber: `S${i}`,
+                position,
+                isWindow
+            });
         }
 
         // Insert all seats at once
@@ -36,6 +86,5 @@ router.post('/init', async (req, res) => {
         res.status(500).json({ msg: 'Server error', error: err.message });
     }
 });
-
 
 module.exports = router;
