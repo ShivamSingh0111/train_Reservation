@@ -30,7 +30,7 @@ const SeatBooking = () => {
   const fetchSeats = async () => {
     try {
       console.log("Fetching seats...");
-      const response = await axios.get('http://localhost:5000/api/seats');
+      const response = await axios.get('https://train-reservation-7aft.onrender.com/api/seats');
       console.log("Seats data:", response.data);
       setSeats(response.data);
       setLoading(false);
@@ -44,7 +44,7 @@ const SeatBooking = () => {
   const initializeSeats = async () => {
     try {
       setInitializingSeats(true);
-      const response = await axios.post('http://localhost:5000/api/seats/init');
+      const response = await axios.post('https://train-reservation-7aft.onrender.com/api/seats/init');
       console.log("Initialization response:", response.data);
       setInitSuccess(true);
       // Fetch the newly initialized seats
@@ -67,7 +67,7 @@ const SeatBooking = () => {
     if (!selectedSeat) return;
 
     try {
-      const response = await axios.post('http://localhost:5000/api/bookings', {
+      const response = await axios.post('https://train-reservation-7aft.onrender.com/api/bookings', {
         seatNumber: selectedSeat.seatNumber,
       });
       
