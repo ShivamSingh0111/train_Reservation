@@ -52,10 +52,10 @@ const Dashboard = () => {
     setLoading(true);
     try {
       // Fetch seat stats
-      const seatsResponse = await axios.get('http://localhost:5000/api/seats/stats');
+      const seatsResponse = await axios.get('https://train-reservation-7aft.onrender.com/api/seats/stats');
       
       // Fetch user bookings count
-      const bookingsResponse = await axios.get('http://localhost:5000/api/bookings/myBooking');
+      const bookingsResponse = await axios.get('https://train-reservation-7aft.onrender.com/api/bookings/myBooking');
       
       setStats({
         availableSeats: seatsResponse.data.available || 0,

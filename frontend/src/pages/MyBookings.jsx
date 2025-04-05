@@ -27,7 +27,7 @@ const MyBookings = () => {
 
   const fetchBookings = async () => {
     try {
-      const response = await axios.get('http://localhost:5000/api/bookings/myBooking');
+      const response = await axios.get('https://train-reservation-7aft.onrender.com/api/bookings/myBooking');
       console.log("Booking data received:", response.data);
       setBookings(response.data);
       setLoading(false);
